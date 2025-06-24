@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TBT Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    table, td, th {
+      border: 1px solid #ccc;
+      border-collapse: collapse;
+      padding: 6px;
+    }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 6px;
+    }
+    .btn {
+      padding: 8px 16px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧰 TBT Dashboard</h2>
+  <label>SIC Name:</label>
+  <input id="sicName" type="text" placeholder="Enter SIC Name">
+
+  <label>Topic:</label>
+  <textarea id="topic" placeholder="Enter TBT Topic"></textarea>
+
+  <h3>🧑 Field Responses:</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Name</th><th>Response</th></tr>
+    </thead>
+    <tbody id="fieldTable"></tbody>
+  </table>
+
+  <button class="btn" onclick="saveData()">💾 Save</button>
+  <button class="btn" onclick="clearForm()">🧹 Clear</button>
+
+  <h3>🗃️ Saved Records</h3>
+  <ul id="savedList"></ul>
+
+  <script>
+    // Create 20 inputs
+    const table = document.getElementById("fieldTable");
+    for (let i = 1; i <= 20; i++) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${i}</td>
+        <td><input id="name${i}" type="text" placeholder="Name ${i}"></td>
+        <td><input id="response${i}" type="text" placeholder="Response ${i}"></td>
+      `;
+      table.appendChild(row);
+    }
+
+    function saveData() {
+      const sic = document.getElementById("sicName").value;
+      const topic = document.getElementById("topic").value;
+      const date = new Date().toISOString().split("T")[0];
+      const responses = [];
+
+      for (let i = 1; i <= 20; i++) {
+        const name = document.getElementById(`name${i}`).value;
+        const response = document.getElementById(`response${i}`).value;
+        if (name && response) responses.push({ name, response });
+      }
+
+      const data = { date, sic, topic, responses };
+      localStorage.setItem(`${date}-${sic}`, JSON.stringify(data));
+      loadSaved();
+      alert("Saved!");
+    }
+
+    function loadSaved() {
+      const saved = document.getElementById("savedList");
+      saved.innerHTML = "";
+
+      Object.keys(localStorage).forEach(key => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${key}</strong>
+          <button onclick="editData('${key}')">✏️ Edit</button>
+          <button onclick="deleteData('${key}')">🗑️ Delete</button>
+        `;
+        saved.appendChild(li);
+      });
+    }
+
+    function editData(key) {
+      const data = JSON.parse(localStorage.getItem(key));
+      document.getElementById("sicName").value = data.sic;
+      document.getElementById("topic").value = data.topic;
+
+      for (let i = 1; i <= 20; i++) {
+        document.getElementById(`name${i}`).value = "";
+        document.getElementById(`response${i}`).value = "";
+      }
+
+      data.responses.forEach((r, i) => {
+        document.getElementById(`name${i+1}`).value = r.name;
+        document.getElementById(`response${i+1}`).value = r.response;
+      });
+    }
+
+    function deleteData(key) {
+      if (confirm("Delete this record?")) {
+        localStorage.removeItem(key);
+        loadSaved();
+      }
+    }
+
+    function clearForm() {
+      document.getElementById("sicName").value = "";
+      document.getElementById("topic").value = "";
+      for (let i = 1; i <= 20; i++) {
+        document.getElementById(`name${i}`).value = "";
+        document.getElementById(`response${i}`).value = "";
+      }
+    }
+
+    loadSaved();
+  </script>
+</body>
+</html>
